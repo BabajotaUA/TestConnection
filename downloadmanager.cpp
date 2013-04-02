@@ -27,10 +27,14 @@ QSharedPointer<DownloadMember> DownloadManager::addNewDownload(const QString &so
 
 void DownloadManager::cancelDownload(DownloadMember *download)
 {
+    if (download->getState() == 2 || download->getState() == 3)
+        download->cancelDownloading();
 }
 
 void DownloadManager::pauseDownload(DownloadMember *download)
 {
+    if (download->getState() == 2)
+        download->pauseDownloading();
 }
 
 void DownloadManager::startDownload(DownloadMember *download)
@@ -44,6 +48,8 @@ void DownloadManager::startDownload(DownloadMember *download)
     case 1:
         download->startDownloading();
         break;
+    case 3:
+        download->resumeDownloading();
     default:
         qDebug() << "Download is at unknown state";
         break;

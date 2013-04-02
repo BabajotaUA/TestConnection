@@ -33,7 +33,6 @@ qint8 DownloadMember::getState() const
 
 void DownloadMember::startDownloading()
 {
-    qDebug() << "Download is READY!";
     sender->startDownloading();
     speedCounter->start();
     state = 2;
@@ -45,6 +44,7 @@ void DownloadMember::resumeDownloading()
 
 void DownloadMember::pauseDownloading()
 {
+    state = 3;
 }
 
 void DownloadMember::cancelDownloading()
