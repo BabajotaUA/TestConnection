@@ -20,13 +20,11 @@ SOURCES += main.cpp \
     downloadmanager.cpp \
     downloadmember.cpp \
     speedcounter.cpp \
-    sender.cpp \
-    reciver.cpp
+    sender.cpp
 
 HEADERS += \
     filesaver.h \
     downloadmanager.h \
     downloadmember.h \
     speedcounter.h \
-    sender.h \
-    reciver.h
+    sender.h

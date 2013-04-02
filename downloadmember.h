@@ -1,7 +1,6 @@
 #pragma once
 
 #include "sender.h"
-#include "reciver.h"
 #include "filesaver.h"
 #include "speedcounter.h"
 #include <QtCore/QSharedPointer>
