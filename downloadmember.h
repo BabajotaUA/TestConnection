@@ -45,6 +45,6 @@ private:
     QList<qint64> parts;
     QString fileName;
     QString fileDestination;
-    qint64 fileSize, partSize;
+    qint64 fileSize, partSize, bytesDownloaded, currentPartSize, currentbytesDownloaded;
     qint8 state, maxFlows;
 };

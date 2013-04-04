@@ -11,8 +11,9 @@ public:
     explicit FileSaver(const QString& fileRepository, QObject *parent = nullptr);
     virtual ~FileSaver();
 
-    void savePart(const QByteArray& data);
+    void savePart(const QByteArray& data, const QList<qint64> &parts);
     void prepareFile(const QList<qint64> &parts);
+    void deleteInfoFile();
     
 signals:
     void filePrepared();

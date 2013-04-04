@@ -11,8 +11,10 @@ FileSaver::~FileSaver()
 {
 }
 
-void FileSaver::savePart(const QByteArray &data)
+void FileSaver::savePart(const QByteArray &data, const QList<qint64> &parts)
 {
+    prepareInfoFile(parts);
+
     if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
         return;
 
@@ -27,6 +29,11 @@ void FileSaver::prepareFile(const QList<qint64> &parts)
     prepareDestinationFile();
     prepareInfoFile(parts);
     emit filePrepared();
+}
+
+void FileSaver::deleteInfoFile()
+{
+    infoFile.remove();
 }
 
 void FileSaver::prepareDestinationFile()
