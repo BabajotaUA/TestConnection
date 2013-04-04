@@ -18,14 +18,13 @@ void SpeedCounter::start()
     timer->start(1000);
 }
 
-qreal SpeedCounter::bytesReciving(qint64 bytesReceived, qint64 bytesTotal)
+void SpeedCounter::stop()
 {
-    if (bytesReceived == bytesTotal)
-    {
-        timer->stop();
-        return 0;
-    }
+    timer->stop();
+}
 
+qreal SpeedCounter::bytesReciving(qint64 bytesReceived)
+{
     auto result = bytesReceived/seconds;
     return result;
 }

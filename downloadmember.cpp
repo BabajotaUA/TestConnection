@@ -7,6 +7,7 @@ DownloadMember::DownloadMember(const QUrl &source, const QString &destination, Q
 {
     fileName = source.path().split('/').last();
     fileDestination = destination;
+    partSize = 1000000;
     maxFlows = 5;
     fileSize = 0;
     state = 0;
@@ -33,13 +34,15 @@ qint8 DownloadMember::getState() const
 
 void DownloadMember::startDownloading()
 {
-    sender->startDownloading();
+    qDebug() << parts.first();
+    sender->download(parts.first());
     speedCounter->start();
     state = 2;
 }
 
 void DownloadMember::resumeDownloading()
 {
+    state = 2;
 }
 
 void DownloadMember::pauseDownloading()
@@ -49,47 +52,51 @@ void DownloadMember::pauseDownloading()
 
 void DownloadMember::cancelDownloading()
 {
+    state = 1;
 }
 
 
-void DownloadMember::splitParts(const qint64 &minSplitSize, const qint64 &startByte = 0)
+void DownloadMember::splitParts(const qint64 &minSplitSize, const qint64 &startByte)
 {
-    auto partEnd = startByte + minSplitSize;
+    auto partEnd = startByte + (minSplitSize-1);
     auto partStart = startByte;
 
     for (; partEnd < fileSize; partStart += minSplitSize)
     {
-        parts.append("bytes=" + QString::number(partStart) + "-" + QString::number(partEnd));
-        qDebug() << fileName << parts.last();
+        parts.append("bytes=" + QByteArray::number(partStart) + "-" + QByteArray::number(partEnd));
         partEnd += minSplitSize;
     }
-    parts.append("bytes=" + QString::number(partStart) + "-" + QString::number(fileSize));
-    qDebug() << fileName << parts.last();
+    parts.append("bytes=" + QByteArray::number(partStart) + "-" + QByteArray::number(fileSize));
 }
 
 void DownloadMember::prepareDownload()
 {
     fileSize = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
-    splitParts(2000000);
+    splitParts(partSize);
     state = 1;
     emit downloadIsReadyToStart();
+}
+
+void DownloadMember::saveDataAndContinue()
+{
+    speedCounter->stop();
+    fileSaver->savePart(reply->readAll());
+    parts.removeFirst();
 }
 
 void DownloadMember::replyReciving(QNetworkReply *newReply)
 {
     reply = QSharedPointer<QNetworkReply>( newReply );
-
     connect(reply.data(),SIGNAL(finished()),SLOT(replyRecivingFinished()));
 
     if (reply->operation() == QNetworkAccessManager::GetOperation)
-    {
         connect(reply.data(),SIGNAL(downloadProgress(qint64,qint64)),SLOT(replyRecivingProgress(qint64,qint64)));
-    }
 }
 
 void DownloadMember::replyRecivingProgress(qint64 bytesRecived, qint64 bytesTotal)
 {
-    qDebug() << fileName << speedCounter->bytesReciving(bytesRecived, bytesTotal)/1024 << "KB/s";
+    emit downloadSpeedChanged(speedCounter->bytesReciving(bytesRecived));
+    emit downloadProgressChanged((100 * bytesRecived / bytesTotal));
 }
 
 void DownloadMember::replyRecivingFinished()
@@ -98,4 +105,18 @@ void DownloadMember::replyRecivingFinished()
     {
         prepareDownload();
     }
+    else if (reply->operation() == QNetworkAccessManager::GetOperation)
+    {
+        saveDataAndContinue();
+        if (!parts.isEmpty())
+        {
+            startDownloading();
+        }
+        else
+        {
+            state = 4;
+            emit downloadIsFinished();
+        }
+    }
+
 }

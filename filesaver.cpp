@@ -11,7 +11,7 @@ FileSaver::~FileSaver()
 {
 }
 
-void FileSaver::saveData(const QByteArray &data)
+void FileSaver::savePart(const QByteArray &data)
 {
     if (!file.open(QIODevice::WriteOnly))
         return;

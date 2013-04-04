@@ -16,20 +16,11 @@ void Sender::getDownloadInfo()
     emit newReply(networkManager.head(request));
 }
 
-void Sender::startDownloading()
+void Sender::download(const QByteArray &part)
 {
-    request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
+    //request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
+    request.setRawHeader("Range",part);
     emit newReply(networkManager.get(request));
-}
-
-
-void Sender::startParts(const QList<QString> &parts)
-{
-    foreach(QString part, parts)
-    {
-        request.setRawHeader("Range",part.toUtf8());
-        networkManager.get(request);
-    }
 }
 
 

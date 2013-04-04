@@ -21,11 +21,9 @@ signals:
     void newReply(QNetworkReply*);
 
 public slots:
-    void startDownloading();
+    void download(const QByteArray &part);
     
 private slots:
-
-    void startParts(const QList<QString> &parts);
 
 private:
     QNetworkAccessManager networkManager;

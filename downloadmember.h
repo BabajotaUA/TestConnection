@@ -17,6 +17,7 @@ public:
 
 signals:
     void downloadIsReadyToStart();
+    void downloadIsFinished();
     void downloadProgressChanged(qreal);
     void downloadSpeedChanged(qint64);
     
@@ -32,17 +33,18 @@ private slots:
     void replyRecivingFinished();
 
 private:
-    void splitParts(const qint64 &minSplitSize, const qint64 &startByte);
+    void splitParts(const qint64 &minSplitSize, const qint64 &startByte = 0);
     void prepareDownload();
+    void saveDataAndContinue();
 
     QSharedPointer<Sender> sender;
     QSharedPointer<FileSaver> fileSaver;
     QSharedPointer<SpeedCounter> speedCounter;
     QSharedPointer<QNetworkReply> reply;
 
-    QList<QString> parts;
+    QList<QByteArray> parts;
     QString fileName;
     QString fileDestination;
-    qint64 fileSize;
+    qint64 fileSize, partSize;
     qint8 state, maxFlows;
 };

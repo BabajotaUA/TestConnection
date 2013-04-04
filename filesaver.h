@@ -11,7 +11,7 @@ public:
     explicit FileSaver(const QString& fileRepository, QObject *parent = nullptr);
     virtual ~FileSaver();
 
-    void saveData(const QByteArray& data);
+    void savePart(const QByteArray& data);
     QList<QString> getDownloadedParts();
     
 signals:

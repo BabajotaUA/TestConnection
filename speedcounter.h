@@ -11,7 +11,8 @@ public:
     ~SpeedCounter();
 
     void start();
-    qreal bytesReciving(qint64 bytesReceived, qint64 bytesTotal);
+    void stop();
+    qreal bytesReciving(qint64 bytesReceived);
 
 private slots:
     void timeChanged();
