@@ -13,7 +13,7 @@ FileSaver::~FileSaver()
 
 void FileSaver::savePart(const QByteArray &data)
 {
-    if (!file.open(QIODevice::WriteOnly))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
         return;
 
     file.write(data);
@@ -22,37 +22,29 @@ void FileSaver::savePart(const QByteArray &data)
     file.close();
 }
 
-QList<QString> FileSaver::getDownloadedParts()
+void FileSaver::prepareFile(const QList<qint64> &parts)
 {
-    if (!infoFile.open(QIODevice::ReadOnly))
-        return QList<QString>();
-
-    QList<QString> result;
-    QList<QByteArray> rawList = infoFile.readAll().split('*');
-    foreach (QByteArray rawItem, rawList)
-    {
-        result.append(QString(rawItem));
-    }
-
-    return result;
+    prepareDestinationFile();
+    prepareInfoFile(parts);
+    emit filePrepared();
 }
 
-void FileSaver::prepareFile()
+void FileSaver::prepareDestinationFile()
 {
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
+    if (!file.open(QIODevice::WriteOnly))
         return;
 
     file.flush();
     file.close();
-    emit filePrepared();
 }
 
-void FileSaver::saveDownloadInfo(QByteArray &downloadedPart)
+void FileSaver::prepareInfoFile(const QList<qint64> &parts)
 {
-    if (!infoFile.open(QIODevice::WriteOnly | QIODevice::Append))
+    if (!infoFile.open(QIODevice::WriteOnly))
         return;
 
-    infoFile.write(downloadedPart.append('*'));
+    foreach (qint64 part, parts)
+        infoFile.write(QByteArray::number(part) + ",");
 
     infoFile.flush();
     infoFile.close();

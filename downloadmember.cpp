@@ -66,17 +66,19 @@ void DownloadMember::splitParts(const qint64 &minSplitSize, const qint64 &startB
 
 void DownloadMember::prepareDownload()
 {
+    state = 1;
     fileSize = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
     splitParts(partSize);
-    state = 1;
+    fileSaver->prepareFile(parts);
     emit downloadIsReadyToStart();
 }
 
 void DownloadMember::saveDataAndContinue()
 {
     speedCounter->stop();
-    fileSaver->savePart(reply->readAll());
     parts.removeFirst();
+    fileSaver->savePart(reply->readAll());
+
 }
 
 void DownloadMember::replyReciving(QNetworkReply *newReply)

@@ -12,16 +12,18 @@ public:
     virtual ~FileSaver();
 
     void savePart(const QByteArray& data);
-    QList<QString> getDownloadedParts();
+    void prepareFile(const QList<qint64> &parts);
     
 signals:
     void filePrepared();
     
 public slots:
-    void prepareFile();
-    void saveDownloadInfo(QByteArray &downloadedPart);
+
 
 private:
+    void prepareDestinationFile();
+    void prepareInfoFile(const QList<qint64> &parts);
+
     QFile file, infoFile;
     QString fileName;
     QByteArray downloadedData;
