@@ -42,7 +42,7 @@ private:
     QSharedPointer<SpeedCounter> speedCounter;
     QSharedPointer<QNetworkReply> reply;
 
-    QList<QByteArray> parts;
+    QList<qint64> parts;
     QString fileName;
     QString fileDestination;
     qint64 fileSize, partSize;

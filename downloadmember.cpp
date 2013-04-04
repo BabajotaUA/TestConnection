@@ -7,7 +7,7 @@ DownloadMember::DownloadMember(const QUrl &source, const QString &destination, Q
 {
     fileName = source.path().split('/').last();
     fileDestination = destination;
-    partSize = 1000000;
+    partSize = 2000000;
     maxFlows = 5;
     fileSize = 0;
     state = 0;
@@ -34,8 +34,8 @@ qint8 DownloadMember::getState() const
 
 void DownloadMember::startDownloading()
 {
-    qDebug() << parts.first();
-    sender->download(parts.first());
+    qDebug() << parts[0] << "-" << parts[1]-1;
+    sender->download("bytes=" + QByteArray::number(parts[0]) + "-" + QByteArray::number(parts[1]-1));
     speedCounter->start();
     state = 2;
 }
@@ -52,21 +52,16 @@ void DownloadMember::pauseDownloading()
 
 void DownloadMember::cancelDownloading()
 {
-    state = 1;
+    state = 0;
+    prepareDownload();
 }
 
 
 void DownloadMember::splitParts(const qint64 &minSplitSize, const qint64 &startByte)
 {
-    auto partEnd = startByte + (minSplitSize-1);
-    auto partStart = startByte;
-
-    for (; partEnd < fileSize; partStart += minSplitSize)
-    {
-        parts.append("bytes=" + QByteArray::number(partStart) + "-" + QByteArray::number(partEnd));
-        partEnd += minSplitSize;
-    }
-    parts.append("bytes=" + QByteArray::number(partStart) + "-" + QByteArray::number(fileSize));
+    for (auto endByte = startByte; endByte < fileSize; endByte += minSplitSize)
+        parts.append(endByte);
+    parts.append(fileSize);
 }
 
 void DownloadMember::prepareDownload()
@@ -108,13 +103,14 @@ void DownloadMember::replyRecivingFinished()
     else if (reply->operation() == QNetworkAccessManager::GetOperation)
     {
         saveDataAndContinue();
-        if (!parts.isEmpty())
+        if (parts.length() > 1)
         {
             startDownloading();
         }
         else
         {
             state = 4;
+            parts.clear();
             emit downloadIsFinished();
         }
     }
