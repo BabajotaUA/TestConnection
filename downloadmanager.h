@@ -12,8 +12,9 @@ public:
     explicit DownloadManager();
     virtual ~DownloadManager();
 
-    QSharedPointer<DownloadMember> downloadAt(const int& index);
+    QSharedPointer<DownloadMember> downloadAt(int index);
     QSharedPointer<DownloadMember> addNewDownload(const QString& sourceURL,const QString& destinationDirectory);
+    int count() const;
 
 public slots:
     void cancelDownload(DownloadMember *download);

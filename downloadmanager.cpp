@@ -10,7 +10,7 @@ DownloadManager::~DownloadManager()
 {
 }
 
-QSharedPointer<DownloadMember> DownloadManager::downloadAt(const int& index)
+QSharedPointer<DownloadMember> DownloadManager::downloadAt(int index)
 {
     return downloadsList.at(index);
 }
@@ -25,15 +25,20 @@ QSharedPointer<DownloadMember> DownloadManager::addNewDownload(const QString &so
     return newMember;
 }
 
+int DownloadManager::count() const
+{
+    return downloadsList.length();
+}
+
 void DownloadManager::cancelDownload(DownloadMember *download)
 {
-    if (download->getState() == 2 || download->getState() == 3)
+    if (download->getState() == DownloadMember::Downloading || download->getState() == DownloadMember::Pause)
         download->cancelDownloading();
 }
 
 void DownloadManager::pauseDownload(DownloadMember *download)
 {
-    if (download->getState() == 2)
+    if (download->getState() == DownloadMember::Downloading)
         download->pauseDownloading();
 }
 
@@ -41,15 +46,16 @@ void DownloadManager::startDownload(DownloadMember *download)
 {
     switch(download->getState())
     {
-    case 0:
+    case DownloadMember::NotReady :
         qDebug() << "Download is preparing...";
         connect(download,SIGNAL(downloadIsReadyToStart()),download,SLOT(startDownloading()));
         break;
-    case 1:
+    case DownloadMember::ReadyToStart :
         download->startDownloading();
         break;
-    case 3:
-        download->resumeDownloading();
+    case DownloadMember::Pause :
+        download->startDownloading();
+        break;
     default:
         qDebug() << "Download is at unknown state";
         break;

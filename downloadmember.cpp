@@ -1,6 +1,7 @@
 #include "downloadmember.h"
 #include <QDebug>
 #include <QStringList>
+#include <stdexcept>
 
 DownloadMember::DownloadMember(const QUrl &source, const QString &destination, QObject *parent) :
     QObject(parent)
@@ -13,7 +14,7 @@ DownloadMember::DownloadMember(const QUrl &source, const QString &destination, Q
     currentPartSize = 0;
     maxFlows = 5;
     fileSize = 0;
-    state = 0;
+    currentState = NotReady;
 
     sender = QSharedPointer<Sender>(new Sender(source,this));
     fileSaver = QSharedPointer<FileSaver>(new FileSaver(destination,this));
@@ -30,26 +31,25 @@ DownloadMember::~DownloadMember()
 {
 }
 
-qint8 DownloadMember::getState() const
+int DownloadMember::getState() const
 {
-    return state;
+    return currentState;
 }
 
 void DownloadMember::startDownloading()
 {
-    sender->download("bytes=" + QByteArray::number(parts[0]) + "-" + QByteArray::number(parts[1]-1));
-    speedCounter->start();
-    state = 2;
-}
+    if (parts.length()>1)
+        sender->download("bytes=" + QByteArray::number(parts[0]) + "-" + QByteArray::number(parts[1]-1));
+    else
+        sender->download("");
 
-void DownloadMember::resumeDownloading()
-{
-    state = 2;
+    speedCounter->start();
+    currentState = Downloading;
 }
 
 void DownloadMember::pauseDownloading()
 {
-    state = 3;
+    currentState = Pause;
     parts[0] += currentbytesDownloaded;
     fileSaver->savePart(reply->readAll(), parts);
     reply->abort();
@@ -57,7 +57,7 @@ void DownloadMember::pauseDownloading()
 
 void DownloadMember::cancelDownloading()
 {
-    state = 0;
+    currentState = NotReady;
     prepareDownload();
 }
 
@@ -71,29 +71,43 @@ void DownloadMember::splitParts(const qint64 &minSplitSize, const qint64 &startB
 
 void DownloadMember::prepareDownload()
 {
-    state = 1;
     fileSize = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
+    if (fileSize == 0)
+    {
+        throw std::runtime_error("File header reading ERROR");
+    }
     splitParts(partSize);
     fileSaver->prepareFile(parts);
+    currentState = ReadyToStart;
     emit downloadIsReadyToStart();
 }
 
 void DownloadMember::saveDataAndContinue()
 {
     speedCounter->stop();
-    parts.removeFirst();
+    chsngePartList();
     bytesDownloaded += currentPartSize;
     fileSaver->savePart(reply->readAll(), parts);
+}
 
+void DownloadMember::chsngePartList()
+{
+    if (reply->rawHeader("Content-Range").isEmpty())
+        parts.clear();
+    else
+        parts.removeFirst();
 }
 
 void DownloadMember::replyReciving(QNetworkReply *newReply)
 {
     reply = QSharedPointer<QNetworkReply>( newReply );
+    connect(reply.data(),SIGNAL(error(QNetworkReply::NetworkError)),SLOT(replyRecivingError(QNetworkReply::NetworkError)));
     connect(reply.data(),SIGNAL(finished()),SLOT(replyRecivingFinished()));
 
     if (reply->operation() == QNetworkAccessManager::GetOperation)
+    {
         connect(reply.data(),SIGNAL(downloadProgress(qint64,qint64)),SLOT(replyRecivingProgress(qint64,qint64)));
+    }
 }
 
 void DownloadMember::replyRecivingProgress(qint64 bytesRecived, qint64 bytesTotal)
@@ -104,6 +118,11 @@ void DownloadMember::replyRecivingProgress(qint64 bytesRecived, qint64 bytesTota
     emit downloadProgressChanged((100 * (bytesDownloaded + bytesRecived) / fileSize));
 
     qDebug() << fileName << (100 * (bytesDownloaded + bytesRecived) / fileSize);
+}
+
+void DownloadMember::replyRecivingError(QNetworkReply::NetworkError)
+{
+    qDebug() << reply->errorString();
 }
 
 void DownloadMember::replyRecivingFinished()
@@ -121,7 +140,7 @@ void DownloadMember::replyRecivingFinished()
         }
         else
         {
-            state = 4;
+            currentState = Finished;
             parts.clear();
             fileSaver->deleteInfoFile();
             emit downloadIsFinished();

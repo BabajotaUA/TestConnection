@@ -13,7 +13,8 @@ public:
     explicit DownloadMember(const QUrl& source, const QString& destination, QObject *parent = nullptr);
     virtual ~DownloadMember();
 
-    qint8 getState() const;
+    enum State {NotReady, ReadyToStart, Downloading, Pause, Finished};
+    int getState() const;
 
 signals:
     void downloadIsReadyToStart();
@@ -23,19 +24,20 @@ signals:
     
 public slots:
     void startDownloading();
-    void resumeDownloading();
     void pauseDownloading();
     void cancelDownloading();
 
 private slots:
     void replyReciving(QNetworkReply* newReply);
     void replyRecivingProgress(qint64 bytesRecived, qint64 bytesTotal);
+    void replyRecivingError(QNetworkReply::NetworkError);
     void replyRecivingFinished();
 
 private:
     void splitParts(const qint64 &minSplitSize, const qint64 &startByte = 0);
-    void prepareDownload();
     void saveDataAndContinue();
+    void chsngePartList();
+    void prepareDownload();
 
     QSharedPointer<Sender> sender;
     QSharedPointer<FileSaver> fileSaver;
@@ -46,5 +48,6 @@ private:
     QString fileName;
     QString fileDestination;
     qint64 fileSize, partSize, bytesDownloaded, currentPartSize, currentbytesDownloaded;
-    qint8 state, maxFlows;
+    qint8 maxFlows;
+    State currentState;
 };
