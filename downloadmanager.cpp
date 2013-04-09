@@ -1,6 +1,5 @@
 #include "downloadmanager.h"
 #include <QtCore/QDebug>
-#include <QtCore/QStringList>
 
 DownloadManager::DownloadManager()
 {
@@ -18,8 +17,7 @@ QSharedPointer<DownloadMember> DownloadManager::downloadAt(int index)
 QSharedPointer<DownloadMember> DownloadManager::addNewDownload(const QString &sourceURL, const QString &destinationDirectory)
 {
     auto source = QUrl(sourceURL);
-    auto destination = destinationDirectory + source.path().split('/').last();
-    auto newMember = QSharedPointer<DownloadMember>(new DownloadMember(source, destination));
+    auto newMember = QSharedPointer<DownloadMember>(new DownloadMember(source, destinationDirectory));
     downloadsList.append(newMember);
 
     return newMember;
@@ -60,12 +58,6 @@ void DownloadManager::startDownload(DownloadMember *download)
         qDebug() << "Download is at unknown state";
         break;
     }
-}
-
-void DownloadManager::startAllDownloads()
-{
-    for (int i=0;i<downloadsList.length();++i)
-        startDownload(downloadsList.at(i).value);
 }
 
 

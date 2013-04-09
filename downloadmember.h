@@ -5,6 +5,7 @@
 #include "speedcounter.h"
 #include <QtCore/QSharedPointer>
 #include <QtCore/QObject>
+#include <QtNetwork/QNetworkReply>
 
 class DownloadMember : public QObject
 {
@@ -37,7 +38,9 @@ private:
     void splitParts(const qint64 &minSplitSize, const qint64 &startByte = 0);
     void saveDataAndContinue();
     void chsngePartList();
+    bool collectingHeaderData();
     void prepareDownload();
+    QString fileDestination() const;
 
     QSharedPointer<Sender> sender;
     QSharedPointer<FileSaver> fileSaver;
@@ -45,9 +48,7 @@ private:
     QSharedPointer<QNetworkReply> reply;
 
     QList<qint64> parts;
-    QString fileName;
-    QString fileDestination;
-    qint64 fileSize, partSize, bytesDownloaded, currentPartSize, currentbytesDownloaded;
-    qint8 maxFlows;
+    QString fileName, destination;
+    qint64 fileSize, PART_SIZE, bytesDownloaded, currentPartSize;
     State currentState;
 };

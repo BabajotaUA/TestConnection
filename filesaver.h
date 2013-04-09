@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QtCore/QObject>
-#include <QtCore/QByteArray>
 #include <QtCore/QFile>
 
 class FileSaver : public QObject

@@ -1,12 +1,8 @@
 #pragma once
 
 #include <QtCore/QObject>
-#include <QtCore/QByteArray>
-#include <QtCore/QSharedPointer>
-#include <QtCore/QList>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
-#include <QtNetwork/QNetworkReply>
 
 class Sender : public QObject
 {

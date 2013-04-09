@@ -47,6 +47,9 @@ void FileSaver::prepareDestinationFile()
 
 void FileSaver::prepareInfoFile(const QList<qint64> &parts)
 {
+    if (parts.isEmpty())
+        return;
+
     if (!infoFile.open(QIODevice::WriteOnly))
         return;
 
